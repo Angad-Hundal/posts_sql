@@ -23,6 +23,11 @@ const connection = mysql.createPool({
 
 
 
+app.get('/', (req, res) => {
+    res.redirect("/posting.html");
+})
+
+
 app.get('/init', (req, res) => {
 
     // create a databse named postdb
@@ -40,7 +45,6 @@ app.get('/init', (req, res) => {
         id INT(11) NOT NULL AUTO_INCREMENT,
         data VARCHAR(255) NOT NULL,
         topic VARCHAR(255) NOT NULL,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
     `;
@@ -70,7 +74,7 @@ app.post('/addPost', (req, res) => {
       if (err) throw err;
       console.log("CONNECTION ESTABLISHED")
   
-      connection.query(`INSERT INTO postdb.posts (data, topic, timestamp) VALUES ('${data}','${topic}', '${timestamp}')`, (err, rows) => {
+      connection.query(`INSERT INTO postdb.posts (data, topic) VALUES ('${data}','${topic}')`, (err, rows) => {
         connection.release();
   
         if (err) {
@@ -82,19 +86,17 @@ app.post('/addPost', (req, res) => {
 
 
 
-
-
 // get all the values from table
 app.get('/getPosts', (req, res) => {
 
-    console.log("CONNECTED");
+    console.log("CONNECTED GET POSTS");
   
     connection.getConnection((err, connection) => {
   
       if (err) throw err;
       console.log("CONNECTION ESTABLISHED");
   
-      connection.query('SELECT * FROM postbd.posts', (err, rows) => {
+      connection.query('SELECT * FROM postdb.posts', (err, rows) => {
         connection.release();
   
         if (!err) {
@@ -106,10 +108,6 @@ app.get('/getPosts', (req, res) => {
       })
     })
 })
-
-
-
-
 
 
 

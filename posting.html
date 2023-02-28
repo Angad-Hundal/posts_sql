@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+
+    <title> Posts </title>
+
+</head>
+
+
+<body>
+    
+    <script type = "text/javascript">
+
+        function getPost(){
+
+            var http = new XMLHttpRequest();
+            var url = '/getPosts';
+       
+            http.open('GET', url, true);
+
+            http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+            http.onreadystatechange = function() { 
+
+                if(http.readyState == 4 && http.status == 200) {
+
+
+                    var allPosts = http.responseText;
+
+                    var obj = JSON.parse(allPosts);  // dict with one value and key is rows
+                    array_of_dict = obj["rows"];
+                    console.log(array_of_dict);
+                    console.log(array_of_dict.length);
+
+
+                    table = document.getElementById("table");
+                    t_row = 1;
+                    console.log(obj.length);
+
+                    clearTable();
+
+
+
+                    for (var i = 0; i < array_of_dict.length; i++) {
+
+                        console.log("JEABGFUJBEFUJEBFU");
+
+
+                        var newRow = table.insertRow(table.length);
+
+                        var cell0 = newRow.insertCell(0);
+                        var cell1 = newRow.insertCell(1);
+
+                        
+
+                        table.rows[t_row].cells[0].innerHTML = temp_id = array_of_dict[i]["topic"]
+                        console.log("jbddfjd", temp_id);
+                        table.rows[t_row].cells[1].innerHTML = temp_id = array_of_dict[i]["data"]
+                    
+
+                        t_row = t_row + 1;
+
+                        // var newRow = table.insertRow(table.length);
+
+                        // var cell0 = newRow.insertCell(0);
+                        // var cell1 = newRow.insertCell(1);
+                        //var cell2 = newRow.insertCell(2);
+                        }
+
+                }
+            };
+
+            http.send();
+
+        };
+
+        function makePost(){
+
+            var http = new XMLHttpRequest();
+            var url = '/addPost';
+
+            var params ='topic=' + document.getElementById("topic_input").value + '&data=' + document.getElementById("data_input").value;
+       
+            http.open('POST', url, true);
+
+            http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+            http.onreadystatechange = function() { 
+
+                if(http.readyState == 4 && http.status == 200) {
+            
+                    alert(http.responseText);  
+                }
+            };
+
+            http.send(params);};
+
+
+
+        function clearTable() {
+            var table = document.getElementById("table");
+            var numRows = table.rows.length;
+  
+            // Remove all rows except the header row
+            for (var i = 1; i < numRows; i++) {
+                table.deleteRow(1);
+            }   
+        }
+
+
+
+    </script>
+
+
+    <label for="topic"> TOPIC: </label> 
+    <input id="topic_input" type="text" name="topic" value="enter the topic here">  </input> <br></br>
+
+    <label for="data"> DATA: </label>
+    <input id="data_input" type="text" name="data" value="enter the data here">  </input> <br></br>
+
+    <button onclick="makePost()"> SUBMIT </button>
+    <br></br>
+
+
+    <button onclick="getPost()"> GET POSTS </button>
+
+
+    <table id="table" border="2" class="styled-table">
+
+        <!-- ROW 0 That is the heading -->
+        <tr id="ttr">
+            <th>TOPIC</th>
+            <th>DATA</th>
+        </tr>
+
+        <tr>
+            <td></td>
+            <td></td>
+        </tr>
+
+
+    </table>
+
+
+</body>
+
+</html>
