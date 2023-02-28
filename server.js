@@ -57,6 +57,62 @@ app.get('/init', (req, res) => {
 })
 
 
+
+// handle the request for adding post to mysql
+app.post('/addPost', (req, res) => {
+    
+    var data = req.body.data;
+    var topic = req.body.topic;
+    var timestamp = req.body.timestamp;
+
+  
+    connection.getConnection((err, connection) => {
+      if (err) throw err;
+      console.log("CONNECTION ESTABLISHED")
+  
+      connection.query(`INSERT INTO postdb.posts (data, topic, timestamp) VALUES ('${data}','${topic}', '${timestamp}')`, (err, rows) => {
+        connection.release();
+  
+        if (err) {
+          console.log(err);
+        }
+      })
+    })
+})
+
+
+
+
+
+// get all the values from table
+app.get('/getPosts', (req, res) => {
+
+    console.log("CONNECTED");
+  
+    connection.getConnection((err, connection) => {
+  
+      if (err) throw err;
+      console.log("CONNECTION ESTABLISHED");
+  
+      connection.query('SELECT * FROM postbd.posts', (err, rows) => {
+        connection.release();
+  
+        if (!err) {
+          res.send({ rows });
+        }
+        else {
+          console.log(err);
+        }
+      })
+    })
+})
+
+
+
+
+
+
+
 app.use('/', express.static(__dirname));
 
 app.listen(PORT, () => { console.log(`Server running on port: ${PORT}`) });
