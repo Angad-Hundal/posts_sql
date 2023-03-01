@@ -1,116 +1,87 @@
-const express = require('express')
-const bodyParser = require('body-parser');
-const mysql = require("mysql");
-var path = require("path");
+// load package
+const express = require('express');
+const mysql = require('mysql');
+const bodyParser = require("body-parser");
 
-
-const PORT = 4000
-const app = express()
-const HOST = '127.0.0.1';
-
-
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-
-// create connection with mysql
-const connection = mysql.createPool({
-    host: 'localhost', 
-    user: 'root',
-    password: '12345'
-});
+const PORT = 3000;
+const HOST = '0.0.0.0';
+const app = express();
+app.use( bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
+
+//Database Connection
+const connection = mysql.createConnection({
+    // host: '0.0.0.0'/localhost: Used to  locally run app
+    host: "mysql1",
+    user: "root",
+    password: "admin"
+  });
+
+connection.connect((err) => {
+    if (err) throw err;
+    console.log('Connected to MySQL Server!');
+  }); 
+
+
+
+// direct it to given page
 app.get('/', (req, res) => {
     res.redirect("/posting.html");
 })
 
 
+
+// make a database and table if they already not exists
 app.get('/init', (req, res) => {
-
-    // create a databse named postdb
-    connection.query('CREATE DATABASE postdb', (error, results, fields) => {
-        if (error) {
-            console.log(error);
-        } 
-        else {
-            console.log('Database created successfully');}
+    connection.query(`CREATE DATABASE IF NOT EXISTS postdb`,function (error,result) {
+        if (error) console.log(error) });
+    //Create Table
+    connection.query(`USE postdb`,function (error, results) {
+        if (error) console.log(error);
     });
-
-
-    const sql = `
-        CREATE TABLE IF NOT EXISTS postdb.posts (
-        id INT(11) NOT NULL AUTO_INCREMENT,
-        data VARCHAR(255) NOT NULL,
-        topic VARCHAR(255) NOT NULL,
-        PRIMARY KEY (id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-    `;
-
-    connection.query(sql, (error, results, fields) => {
-        if (error) {
-            console.log(error);
-        } 
-        else {
-            console.log('Table created successfully');
-        }
-    });
-
-})
+    connection.query(`CREATE TABLE IF NOT EXISTS posts 
+    ( id int unsigned NOT NULL auto_increment, 
+    topic varchar(100)NOT NULL,
+    data varchar(100) NOT NULL,
+    PRIMARY KEY (id))`, function (error,result) {
+        if (error) console.log(error)});
+        res.send('Database and Table created!')
+}); 
 
 
 
-// handle the request for adding post to mysql
-app.post('/addPost', (req, res) => {
-    
-    var data = req.body.data;
+
+// add a post to posts table
+app.post('/addPost', (req,res) => {
     var topic = req.body.topic;
-    var timestamp = req.body.timestamp;
-
-  
-    connection.getConnection((err, connection) => {
-      if (err) throw err;
-      console.log("CONNECTION ESTABLISHED")
-  
-      connection.query(`INSERT INTO postdb.posts (data, topic) VALUES ('${data}','${topic}')`, (err, rows) => {
-        connection.release();
-  
-        if (err) {
-          console.log(err);
-        }
-      })
-    })
-})
+    var data = req.body.data;
+    var query = `INSERT INTO posts (topic, data) VALUES ("${topic}", "${data}")`;
+    connection.query(query, function (error,result) {
+        if (error) console.log(error);
+        res.send('New post inserted');
+    });
+});
 
 
 
-// get all the values from table
+
+
+// get all posts from table
 app.get('/getPosts', (req, res) => {
-
-    console.log("CONNECTED GET POSTS");
-  
-    connection.getConnection((err, connection) => {
-  
-      if (err) throw err;
-      console.log("CONNECTION ESTABLISHED");
-  
-      connection.query('SELECT * FROM postdb.posts', (err, rows) => {
-        connection.release();
-  
-        if (!err) {
-          res.send({ rows });
-        }
-        else {
-          console.log(err);
-        }
-      })
-    })
-})
+    const sqlQuery = 'SELECT * FROM posts';
+    connection.query(sqlQuery, function (error,result) {
+        if (error) console.log(error);
+        res.json({ 'posts': result});
+    });
+});
 
 
 
-app.use('/', express.static(__dirname));
 
-app.listen(PORT, () => { console.log(`Server running on port: ${PORT}`) });
+ //serves the static files in the public folder
+app.use('/', express.static('public'));
+app.listen(PORT, HOST);
+console.log(`Running on http://${HOST}:${PORT}`);
